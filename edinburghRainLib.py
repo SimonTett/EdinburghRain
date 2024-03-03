@@ -106,7 +106,7 @@ def get_radar_data(file=dataDir / 'radar_precip/summary_1km_15min.nc', region=No
     return rseasMskmax,mxTime
 
 def gen_radar_data(file=dataDir / 'radar_precip/summary_1km_15min.nc', quantiles=None,
-                   region=None, height_range=slice(0,200), discrete_hr=12):
+                   region=None, height_range=slice(0,200), discrete_hr=12,min_count=25):
     """
     generated flattened radar data.
     Read in data, keep data between height_range, mask by seasonal total rainfall < 1000 mm, group by time (discretized to 12 hours by default), requiring at least 25 values.  and then compute quantiles for each grouping
@@ -128,8 +128,39 @@ def gen_radar_data(file=dataDir / 'radar_precip/summary_1km_15min.nc', quantiles
     indx = xarray.where(rseasMskmax, indx, np.nan)
     rain_count = rseasMskmax.groupby(indx).count()
     radar_data = rseasMskmax.groupby(indx).quantile(quantiles).rename(group='time_index', quantile='time_quant')  # .values
+
     ok_count=(~rseasMskmax.isnull()).groupby(indx).sum().rename(group='time_index')    # count non nan
-    radar_data=radar_data[(ok_count > 25)] # want at least 25 values
+    radar_data=radar_data[(ok_count > min_count)] # want at least 25 values
+    # To get the coords -- from chatGPT
+    # Assuming you have already performed the groupby and calculated quantiles
+    # index = funct(data.time)
+    # quants = data.groupby(index).quantiles([0.25, 0.75])
+    #
+    # Get the quantile values you are interested in (e.g., 25th and 75th percentiles)
+    #quantiles = [0.25, 0.75]
+
+    # # Find the spatial coordinates corresponding to the quantile values
+    # spatial_coordinates = {}
+    # for quantile in quantiles:
+    #     # Loop through each group (index_value) in the GroupBy object
+    #     for index_value, indices in quants.groups.items():
+    #         # Select data for the current group using the indices
+    #         group_data = data.isel(time=indices)
+    #         # Calculate the quantile value for the current group
+    #         quantile_value = quants.sel(quantile=quantile).isel(group=index_value).values
+    #
+    #         # Find the spatial coordinates where the data is closest to the quantile value
+    #         closest_index = np.abs(group_data.values - quantile_value).argmin()
+    #         spatial_coords = {dim: coord.values[closest_index] for dim, coord in group_data.coords.items()}
+    #
+    #         # Store the spatial coordinates in the result dictionary
+    #         spatial_coordinates[(index_value, quantile)] = spatial_coords
+    #
+    # # Print the result
+    # for (index_value, quantile), coords in spatial_coordinates.items():
+    #     print(f"Index Value: {index_value}, Quantile: {quantile}")
+    #     print(coords)
+
     ed_indx = indx.sel(edinburgh_castle, method='nearest').sel(time='2021')
     rainC2021 = radar_data.sel(time_index=ed_indx).squeeze()
     ed_indx = indx.sel(edinburgh_castle, method='nearest').sel(time='2020')

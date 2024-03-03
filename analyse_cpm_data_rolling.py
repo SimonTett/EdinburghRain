@@ -158,8 +158,8 @@ for ts, title in zip([cet, cpm, ed_temp, ed_reg_hum], ['CET', 'CPM_region', 'Edi
                                    dim='time_ensemble', file=file, recreate_fit=refresh, verbose=True)
     file = outdir_gev / f"cov_{title}_shape.nc"
     xfit_shape[title] = gev_r.xarray_gev(ed_extreme_precip.stack(time_ensemble=stack_dims),
-                                   cov=ts_summer.stack(time_ensemble=stack_dims), shapeCov=True,
-                                   dim='time_ensemble', file=file, recreate_fit=refresh, verbose=True)
+                                         cov=ts_summer.stack(time_ensemble=stack_dims), shape_cov=True,
+                                         dim='time_ensemble', file=file, recreate_fit=refresh, verbose=True)
 
 #
 # want ratios of Dlocation/location & Dscale/scale

@@ -20,7 +20,7 @@ Does the following -- using results produced by:
    comp_radar_fits -- data from analysis of radar data
 1) Read in CPM GEV scaling parameters including bootstrap samples of the scalings to apply to radar data
 2) Load in the radar data fits and bootstrap fits. 
-3) Load radarMax data and find castle radar max for 2020-08 & 2021-07. Add to radar dataSet
+3) Load radarMax data and find castle radar max for 2020-08 & 2021-07. Add to radar dataset
 4) Read in observed CET and generate temperatures for several periods. Estimates CET at +2K plus uncertainty.
 5) Computes intensity and probability ratios for various  times relative to PI (1850-1899)
 6) Compute monte carlo samples of intensity and probability ratios for time periods. 
@@ -441,7 +441,7 @@ radar_fit = xarray.load_dataset(edinburghRainLib.dataDir / 'radar_precip' / 'reg
 # and the actual radar data -- as quantile in each assumed independant extreme region
 radar = xarray.load_dataset(edinburghRainLib.dataDir / 'radar_precip' / 'reg_radar_rain.nc')
 ##radar_data = radar.radar
-# read in monthlyMax radar and find values for Edinburgh castle for 2020 and 2021. Add to radar dataSet.
+# read in monthlyMax radar and find values for Edinburgh castle for 2020 and 2021. Add to radar dataset.
 ts = xarray.open_dataset(file).monthlyMax.sel(**edinburghRainLib.edinburgh_castle, method='nearest')
 castle2021 = float(ts.sel(time='2021-07'))
 castle2020 = float(ts.sel(time='2020-08'))

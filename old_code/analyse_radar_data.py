@@ -6,8 +6,7 @@ import edinburghRainLib
 import xarray
 import cartopy.crs as ccrs
 import matplotlib.pyplot as plt
-import gev_r # so we can fit gev using R
-
+from R_filter import gev_r
 
 recreate_fit  =False # if true create radar fit data *even* if file exists
 file = edinburghRainLib.dataDir/'radar_precip/summary_1km_15min.nc'
@@ -60,8 +59,8 @@ for ax,title in zip(axes,['Monthly Mean Summer Rainfall (mm/day)',f'Summer Mean 
 plt.show()
 ## do fit
 cet['time']=mx_seas_rain.time
-fit = gev_r.xarray_gev(mx_seas_rain,dim='time',file=radar_fit_file,recreate_fit=recreate_fit,verbose=True)
-today = gev_r.param_cov(fit,cet.mean())
+fit = gev_r.xarray_gev(mx_seas_rain, dim='time', file=radar_fit_file, recreate_fit=recreate_fit, verbose=True, name=If)
+today = gev_r.param_cov(fit, cet.mean())
 
 ##and plot it
 fig_params,axes = plt.subplots(nrows=2,ncols=2,num='Radar_params',clear=True,subplot_kw=dict(projection=projGB),figsize=[11,9])

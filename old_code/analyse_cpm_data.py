@@ -19,8 +19,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 import matplotlib.colors
-import patch_mpl_mosaic # patch plt.subplot_mosaic.
-import gev_r # needs to be imported before any r done as sets up r-environment
+from R_python import gev_r
 import rpy2
 import rpy2.robjects as robjects
 import rpy2.robjects.pandas2ri as rpandas2ri
@@ -138,14 +137,14 @@ for ts, title in zip([cet, cpm, ed_temp, ed_reg_hum], ['CET', 'CPM_region', 'Edi
     ts_summer['time'] = ed_extreme_precip.time  # make sure times are the same
     covariates[title] = ts_summer
     xfit[title] = gev_r.xarray_gev(ed_extreme_precip.stack(time_ensemble=stack_dims),
-                                   cov=ts_summer.stack(time_ensemble=stack_dims),
-                                   dim='time_ensemble', file=file, recreate_fit=refresh, verbose=True)
+                                   cov=ts_summer.stack(time_ensemble=stack_dims), dim='time_ensemble', file=file,
+                                   recreate_fit=refresh, verbose=True, name=If)
 
 #
 # want ratios of Dlocation/location & Dscale/scale
 rgn='CET'
 D=xfit[rgn].Parameters.sel(parameter=['Dlocation','Dscale'])#.where(msk)
-params_today = gev_r.param_at_cov(xfit[rgn].Parameters,t_today)
+params_today = gev_r.param_at_cov(xfit[rgn].Parameters, t_today)
 ratio_Dparam = D/params_today.sel(parameter=['location','scale']).assign_coords(parameter=['Dlocation','Dscale'])
 # and want to save the scaling ratios so they can be applied to the precipitation data.
 ratio_Dparam.to_netcdf(edinburghRainLib.dataDir/'gev_fits'/f'{rgn}_sens_gev_params.nc')

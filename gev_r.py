@@ -11,6 +11,8 @@ import collections
 
 os.environ[
     'R_HOME'] = r'C:\Users\stett2\AppData\Local\Microsoft\AppV\Client\Integration\FC689017-A9BB-4A9B-B971-6AC52117BA03\Root'  # where R is...
+os.environ['R_HOME']=\
+r"C:\Users\stett2\AppData\Local\Microsoft\AppV\Client\Integration\0E3F48F7-DE80-473E-ABFA-A6BC515ABDCA\Root"
 # will need adjusting depending on where R got installed
 import rpy2
 import rpy2.robjects as robjects
@@ -147,11 +149,11 @@ def xarray_gev_python(ds,dim='time_ensemble', file=None, recreate_fit=False, ver
         if verbose:
             print(f"Wrote fit information to {file}")
     return ds
-def xarray_gev(ds, cov=None, shapeCov=False, dim='time_ensemble', file=None, recreate_fit=False, verbose=False,**kwargs):
+def xarray_gev(dataArray, cov=None, shapeCov=False, dim='time_ensemble', file=None, recreate_fit=False, verbose=False, **kwargs):
     """
     Fit a GEV to xarray data using R.
-    :param ds: dataset for which GEV is to be fit
-    :param cov: covariate (If None not used)
+    :param dataArray: dataArray for which GEV is to be fit
+    :param cov: covariate (If None not used) -- another dataArray. TODO generalize to multuple dataarrays
     :param shapeCov: If True allow the shape to vary with the covariate.
     :param dim: The dimension over which to collapse.
     :param file -- if defined save fit to this file. If file exists then read data from it and so not actually do fit.
@@ -160,26 +162,26 @@ def xarray_gev(ds, cov=None, shapeCov=False, dim='time_ensemble', file=None, rec
     :param kwargs: any kwargs passed through to the fitting function
     :return: a dataset containing:
         Parameters -- the parameters of the fit; location, location wrt cov, scale, scale wrt cov, shape, shape wrt cov
-        Stderr -- the standard error of the fit -- same parameters as Parameters
+        StdErr -- the standard error of the fit -- same parameters as Parameters
         nll -- negative log likelihood of the fit -- measure of the quality of the fit
         AIC -- aitkin information criteria.
     """
     if (file is not None) and file.exists() and (not recreate_fit): # got a file specified, it exists and we are not recreating fit
-        ds=xarray.load_dataset(file) # just load the dataset and return it
+        dataArray=xarray.load_dataset(file) # just load the dataset and return it
         if verbose:
             print(f"Loaded existing data from {file}")
-        return ds
+        return dataArray
 
     #kwargs['returnType'] = 'tuple'
     kwargs['shapeCov'] = shapeCov
     if cov is None:
-        params, std_err, nll, AIC = xarray.apply_ufunc(gev_fit, ds,  input_core_dims=[[dim]],
-                                                   output_core_dims=[['parameter'], ['parameter'], ['NegLog'], ['AIC']],
-                                                   vectorize=True, kwargs=kwargs)
+        params, std_err, nll, AIC = xarray.apply_ufunc(gev_fit, dataArray, input_core_dims=[[dim]],
+                                                       output_core_dims=[['parameter'], ['parameter'], ['NegLog'], ['AIC']],
+                                                       vectorize=True, kwargs=kwargs)
     else:
-        params, std_err, nll, AIC = xarray.apply_ufunc(gev_fit, ds, cov, input_core_dims=[[dim], [dim]],
-                                                   output_core_dims=[['parameter'], ['parameter'], ['NegLog'], ['AIC']],
-                                                   vectorize=True, kwargs=kwargs)
+        params, std_err, nll, AIC = xarray.apply_ufunc(gev_fit, dataArray, cov, input_core_dims=[[dim], [dim]],
+                                                       output_core_dims=[['parameter'], ['parameter'], ['NegLog'], ['AIC']],
+                                                       vectorize=True, kwargs=kwargs)
 
     pnames = ['location', 'scale','shape',  'Dlocation', 'Dscale', 'Dshape']
     # name variables and then combine into one dataset.
@@ -188,12 +190,12 @@ def xarray_gev(ds, cov=None, shapeCov=False, dim='time_ensemble', file=None, rec
     std_err = std_err.rename("StdErr")
     nll = nll.rename('nll').squeeze()
     AIC = AIC.rename('AIC').squeeze()
-    ds = xarray.Dataset(dict(Parameters=params, StdErr=std_err, nll=nll, AIC=AIC)).assign_coords(parameter=pnames)
+    dataArray = xarray.Dataset(dict(Parameters=params, StdErr=std_err, nll=nll, AIC=AIC)).assign_coords(parameter=pnames)
     if file is not None:
-        ds.to_netcdf(file) # save the dataset.
+        dataArray.to_netcdf(file) # save the dataset.
         if verbose:
             print(f"Wrote fit information to {file}")
-    return ds
+    return dataArray
 
 
 ## use apply ufunc to generate distributions...

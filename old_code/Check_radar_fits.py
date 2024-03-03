@@ -5,7 +5,6 @@ No longer used
 import xarray
 import scipy.stats
 import matplotlib.pyplot as plt
-import gev_r # so we have R up and running!
 import commonLib
 import edinburghRainLib
 import statsmodels.graphics.gofplots

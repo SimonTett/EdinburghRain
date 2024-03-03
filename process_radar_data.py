@@ -256,7 +256,7 @@ for year in args.year:
         time = pd.to_datetime(rain.time.values[0])
 # from https://medium.com/survata-engineering-blog/monitoring-memory-usage-of-a-running-python-program-49f027e3d1ba
         if monitor: # report on memory
-            mem = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss 
+            mem =  
             max_mem = max(max_mem,mem) 
             print(f"Memory: {mem}, Max Mem {max_mem}")
         print(f, time)
